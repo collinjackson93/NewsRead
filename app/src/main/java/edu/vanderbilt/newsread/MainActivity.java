@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     Button startListening;
 
     // Stores headlines and full articles. Articles are in the second dimension.
+    String readThisArticle = "Would you like to read this article?";
     String[][] news = new String [][] {
             {"Surfer loses left leg after shark attack in Hawaii",
             "Etsy.com shares unravel more after Amazon launches rival",
@@ -71,14 +72,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        final String[] headlines = new String[news[0].length];
+        for (int i = 0; i < headlines.length; ++i) {
+            headlines[i] = news[0][i];
+        }
 
         b1 = (Button)findViewById(R.id.button);
         startListening = (Button) findViewById(R.id.button);
         startListening.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new SpeakInBackground().execute("The quick brown fox jumps over the lazy dog", "Hi Collin, you are the bees knees.");
-                promptSpeechInput();
+                new SpeakInBackground().execute(headlines);
             }
         });
 
@@ -97,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 while (t1.isSpeaking()) {
                     //do nothing
                 }
+
             }
             return null;
         }
