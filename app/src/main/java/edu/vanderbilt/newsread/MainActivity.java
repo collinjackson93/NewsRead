@@ -25,6 +25,34 @@ public class MainActivity extends AppCompatActivity {
     TextView userInput;
     Button startListening;
 
+    // Stores headlines and full articles. Articles are in the second dimension.
+    String[][] news = new String [][] {
+            {"Surfer loses left leg after shark attack in Hawaii",
+            "Etsy.com shares unravel more after Amazon launches rival",
+            "Twitter to have major layoffs next week, report says"},
+            {"A 25-year-old Oahu man lost his left leg to a shark attack Friday while surfing off Oahu's North Shore, according to local media reports." +
+                    "Colin Cook was straddling his board with both legs dangling in the water when the 10- to 12-foot shark latched onto his lower leg, media reports said. He punched the animal until it let go, screamed for help and was assisted to shore by another surfer and a kayaker, his family told reporters." +
+                    "Rescuers used a surfboard leach as a tourniquet on Cook's leg until paramedics arrived. Doctors at Queens Medical Center in Honolulu later completed the amputation on his leg, Chris Webster, Cook's cousin, told KHON 2, a Hawaii television station." +
+                    "During the attack, the shark got him below the knee ... but they had to take his leg above the knee so that was a little heart-breaking, Webster told the television station. Cook's left hand was also injured." +
+                    "Cook is a native of Rhode Island who moved to Hawaii three years ago and learned to create custom surfboards, according to Hawaii News Now." +
+                    "The attacked occurred about 10:30 a.m. near a popular surfing area known as Leftovers Beach Park. It was the fifth shark attack in Hawaii this year." +
+                    "Lifeguards in the area were warning visitors to stay out of the ocean, and signs have been posted along the beach, according to the Associated Press.",
+            "Shares of Etsy, the handmade marketplace, slid further Friday after sinking 4% Thursday when Amazon announced a competing marketplace called Handmade at Amazon." +
+                    "The stock lost 1.3% by Friday mid-day, to $13.40 per share. That compared with a high of $14.68 on Wednesday before Amazon make its announcement."+
+                    "Handmade at Amazon will feature more than 80,000 items, from all 50 states and 60 countries to start, said Peter Faricy, vice president for Amazon Marketplace." +
+                    "In response to Amazon’s foray into the hand-crafted market, Etsy’s CEO Chad Dickerson released the following statement:" +
+                    "We believe we are the best platform for creative entrepreneurs, empowering them to succeed on their own terms. Etsy has a decade of experience understanding the needs of artists and sellers and supporting them in ways that no other marketplace can. Our platform attracts 21+ million thoughtful consumers seeking to discover unique goods, and build relationships with the people who make and sell them.",
+            "Twitter is planning layoffs next week, according to technology news outlet Re/code." +
+                    "The cuts will be made company wide, Re/code said." +
+                    "We're not commenting on rumor and speculation, Twitter spokesman Jim Prosser said." +
+                    "Twitter shares fell 3% in after-hours trading. They closed up about 2% to $30.85 on Friday." +
+                    "Twitter had 4,200 employees at the end of June. That's more than double the 2,000 employees it had in the second quarter of 2013. Yet its user growth has not kept pace." +
+                    "The layoffs would come one week after Twitter co-founder Jack Dorsey was appointed CEO. He has been serving as interim CEO since July 1." +
+                    "Twitter has also apparently shelved plans to expand into a building on Market Street in San Francisco that is home to Uber and Square." +
+                    "According to the San Francisco Business Times, Twitter was close to finalizing the deal to take about 100,000 square feet before abandoning the deal."}
+        };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
