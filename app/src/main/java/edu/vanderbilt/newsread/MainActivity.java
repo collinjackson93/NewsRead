@@ -29,28 +29,28 @@ public class MainActivity extends AppCompatActivity {
     Button b1;
     TextView userInput;
     Button startListening;
-    int counter = 0;
+    int articleNumber = 0;
 
     // Stores headlines and full articles. Articles are in the second dimension.
     String voiceInput;
     String readThisArticle = "Would you like to read this article?";
     String[][] news = new String [][] {
             {"Surfer loses left leg after shark attack in Hawaii",
-            "Etsy.com shares unravel more after Amazon launches rival",
-            "Twitter to have major layoffs next week, report says"},
-            {"A 25-year-old Oahu man lost his left leg to a shark attack Friday while surfing off Oahu's North Shore, according to local media reports." +
+                "A 25-year-old Oahu man lost his left leg to a shark attack Friday while surfing off Oahu's North Shore, according to local media reports." +
                     "Colin Cook was straddling his board with both legs dangling in the water when the 10- to 12-foot shark latched onto his lower leg, media reports said. He punched the animal until it let go, screamed for help and was assisted to shore by another surfer and a kayaker, his family told reporters." +
                     "Rescuers used a surfboard leach as a tourniquet on Cook's leg until paramedics arrived. Doctors at Queens Medical Center in Honolulu later completed the amputation on his leg, Chris Webster, Cook's cousin, told KHON 2, a Hawaii television station." +
                     "During the attack, the shark got him below the knee ... but they had to take his leg above the knee so that was a little heart-breaking, Webster told the television station. Cook's left hand was also injured." +
                     "Cook is a native of Rhode Island who moved to Hawaii three years ago and learned to create custom surfboards, according to Hawaii News Now." +
                     "The attacked occurred about 10:30 a.m. near a popular surfing area known as Leftovers Beach Park. It was the fifth shark attack in Hawaii this year." +
-                    "Lifeguards in the area were warning visitors to stay out of the ocean, and signs have been posted along the beach, according to the Associated Press.",
-            "Shares of Etsy, the handmade marketplace, slid further Friday after sinking 4% Thursday when Amazon announced a competing marketplace called Handmade at Amazon." +
+                    "Lifeguards in the area were warning visitors to stay out of the ocean, and signs have been posted along the beach, according to the Associated Press."},
+            {"Etsy.com shares unravel more after Amazon launches rival",
+                "Shares of Etsy, the handmade marketplace, slid further Friday after sinking 4% Thursday when Amazon announced a competing marketplace called Handmade at Amazon." +
                     "The stock lost 1.3% by Friday mid-day, to $13.40 per share. That compared with a high of $14.68 on Wednesday before Amazon make its announcement."+
                     "Handmade at Amazon will feature more than 80,000 items, from all 50 states and 60 countries to start, said Peter Faricy, vice president for Amazon Marketplace." +
                     "In response to Amazon’s foray into the hand-crafted market, Etsy’s CEO Chad Dickerson released the following statement:" +
-                    "We believe we are the best platform for creative entrepreneurs, empowering them to succeed on their own terms. Etsy has a decade of experience understanding the needs of artists and sellers and supporting them in ways that no other marketplace can. Our platform attracts 21+ million thoughtful consumers seeking to discover unique goods, and build relationships with the people who make and sell them.",
-            "Twitter is planning layoffs next week, according to technology news outlet Re/code." +
+                    "We believe we are the best platform for creative entrepreneurs, empowering them to succeed on their own terms. Etsy has a decade of experience understanding the needs of artists and sellers and supporting them in ways that no other marketplace can. Our platform attracts 21+ million thoughtful consumers seeking to discover unique goods, and build relationships with the people who make and sell them."},
+            {"Twitter to have major layoffs next week, report says",
+                "Twitter is planning layoffs next week, according to technology news outlet Re/code." +
                     "The cuts will be made company wide, Re/code said." +
                     "We're not commenting on rumor and speculation, Twitter spokesman Jim Prosser said." +
                     "Twitter shares fell 3% in after-hours trading. They closed up about 2% to $30.85 on Friday." +
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
                     "Twitter has also apparently shelved plans to expand into a building on Market Street in San Francisco that is home to Uber and Square." +
                     "According to the San Francisco Business Times, Twitter was close to finalizing the deal to take about 100,000 square feet before abandoning the deal."}
         };
-    final String[] headlines = new String[news[0].length];
+    final String[] headlines = new String[news.length];
 
 
 
@@ -78,40 +78,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        final String[] headlines = new String[news[0].length];
+        final String[] headlines = new String[news.length];
         for (int i = 0; i < headlines.length; ++i) {
-            headlines[i] = news[0][i];
+            headlines[i] = news[i][0];
         }
 
         b1 = (Button)findViewById(R.id.button);
         startListening = (Button) findViewById(R.id.button);
 
-        Thread thread = new Thread() {
-            public void run() {
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something");
-                try {
-                    startActivityForResult(intent, 100);
-                } catch (ActivityNotFoundException a) {
-                    Toast.makeText(getApplicationContext(),
-                            "Device does not support speech input",
-                            Toast.LENGTH_SHORT).show();
-                }
-            }
-        };
-
         startListening.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                t1.speak(headlines[0], TextToSpeech.QUEUE_FLUSH, null, "init");
-                while (t1.isSpeaking()) {
-
-                }
-                t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "init");
-                promptSpeechInput();
+                readCurrentHeadline();
             }
         });
         /*t1.speak(headlines[0], TextToSpeech.QUEUE_FLUSH, null, "init");
@@ -133,41 +111,43 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private class SpeakInBackground extends AsyncTask<String, Void, Void>{
-
-
-        @Override
-        protected Void doInBackground(String... stringsToSpeak) {
-            if (stringsToSpeak.length > 1) {
-                throw new IndexOutOfBoundsException("Too many strings to speak");
-            }
-            String stringToSpeak = stringsToSpeak[0];
-            t1.speak(stringToSpeak, TextToSpeech.QUEUE_FLUSH, null, "init");
-            while (t1.isSpeaking()) {
-
-            }
-            promptSpeechInput();
-            try {
-                t1.wait(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    private void promptSpeechInput() {
+    private void promptSpeechInput(int code) {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Say something");
         try {
-            startActivityForResult(intent, 100);
+            startActivityForResult(intent, code);
         } catch (ActivityNotFoundException a) {
             Toast.makeText(getApplicationContext(),
                     "Device does not support speech input",
                     Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void readCurrentArticle() {
+        t1.speak(news[articleNumber][1], TextToSpeech.QUEUE_FLUSH, null, "init");
+        while(t1.isSpeaking()) {}
+        t1.speak("Repeat or back to headlines?", TextToSpeech.QUEUE_FLUSH, null, "whatever");
+        while(t1.isSpeaking()) {}
+        promptSpeechInput(101);
+    }
+
+    private void readCurrentHeadline() {
+        t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "init");
+        while (t1.isSpeaking()) {}
+        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "init");
+        while (t1.isSpeaking()) {}
+        promptSpeechInput(100);
+    }
+
+    private void readNextHeadline() {
+        ++articleNumber;
+        if(articleNumber < news.length) {
+            readCurrentHeadline();
+        } else {
+            t1.speak("End of headlines", TextToSpeech.QUEUE_FLUSH, null, "end");
         }
     }
 
@@ -186,13 +166,30 @@ public class MainActivity extends AppCompatActivity {
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput = result.get(0);
                     if (voiceInput.toLowerCase().equals("yes")) {
-                        t1.speak("Will read article", TextToSpeech.QUEUE_FLUSH, null, "init");
+                        readCurrentArticle();
+                    } else {
+                        readNextHeadline();
+                    }
+                }
+                break;
+            }
+            case 101: { // finished reading article
+                if (resultCode == RESULT_OK && null != data) {
+
+                    ArrayList<String> result = data
+                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    voiceInput = result.get(0).toLowerCase();
+                    if (voiceInput.equals("repeat")) {
+                        readCurrentArticle();
+                    }
+                    else if(voiceInput.equals("back to headlines")) {
+                        readNextHeadline();
                     }
                     else {
-                        t1.speak("Will not read article", TextToSpeech.QUEUE_FLUSH, null, "init");
-                        counter++;
+                        t1.speak("I didn't understand your response. Please say repeat or back to headlines", TextToSpeech.QUEUE_FLUSH, null, "why");
+                        while(t1.isSpeaking()) {}
+                        promptSpeechInput(101);
                     }
-                    //userInput.setText(result.get(0));
                 }
                 break;
             }
@@ -219,5 +216,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        t1.stop();
     }
 }
