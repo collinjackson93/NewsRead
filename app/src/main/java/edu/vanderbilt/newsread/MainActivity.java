@@ -4,7 +4,9 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -27,8 +29,10 @@ public class MainActivity extends AppCompatActivity {
     Button b1;
     TextView userInput;
     Button startListening;
+    int counter = 0;
 
     // Stores headlines and full articles. Articles are in the second dimension.
+    String voiceInput;
     String readThisArticle = "Would you like to read this article?";
     String[][] news = new String [][] {
             {"Surfer loses left leg after shark attack in Hawaii",
@@ -55,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
                     "Twitter has also apparently shelved plans to expand into a building on Market Street in San Francisco that is home to Uber and Square." +
                     "According to the San Francisco Business Times, Twitter was close to finalizing the deal to take about 100,000 square feet before abandoning the deal."}
         };
+    final String[] headlines = new String[news[0].length];
+
 
 
     @Override
@@ -79,15 +85,51 @@ public class MainActivity extends AppCompatActivity {
 
         b1 = (Button)findViewById(R.id.button);
         startListening = (Button) findViewById(R.id.button);
+
+        Thread thread = new Thread() {
+            public void run() {
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something");
+                try {
+                    startActivityForResult(intent, 100);
+                } catch (ActivityNotFoundException a) {
+                    Toast.makeText(getApplicationContext(),
+                            "Device does not support speech input",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+
         startListening.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new SpeakInBackground().execute(headlines);
+                t1.speak(headlines[0], TextToSpeech.QUEUE_FLUSH, null, "init");
+                while (t1.isSpeaking()) {
+
+                }
+                t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "init");
+                promptSpeechInput();
             }
         });
+        /*t1.speak(headlines[0], TextToSpeech.QUEUE_FLUSH, null, "init");
+        while (t1.isSpeaking()) {
+
+        }
+        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "init");
+        promptSpeechInput();
+        /*for (String headline:headlines) {
+            t1.speak(headline, TextToSpeech.QUEUE_FLUSH, null, "init");
+            while (t1.isSpeaking()) {
+
+            }
+            promptSpeechInput();
+        }*/
 
         userInput = (TextView) findViewById(R.id.speechInput);
-
+        
 
     }
 
@@ -96,12 +138,19 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(String... stringsToSpeak) {
-            for(String s : stringsToSpeak) {
-                t1.speak(s, TextToSpeech.QUEUE_FLUSH, null, "init");
-                while (t1.isSpeaking()) {
-                    //do nothing
-                }
+            if (stringsToSpeak.length > 1) {
+                throw new IndexOutOfBoundsException("Too many strings to speak");
+            }
+            String stringToSpeak = stringsToSpeak[0];
+            t1.speak(stringToSpeak, TextToSpeech.QUEUE_FLUSH, null, "init");
+            while (t1.isSpeaking()) {
 
+            }
+            promptSpeechInput();
+            try {
+                t1.wait(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
             return null;
         }
@@ -130,16 +179,23 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case 100: {
+            case 100: { //reading headlines
                 if (resultCode == RESULT_OK && null != data) {
 
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    userInput.setText(result.get(0));
+                    voiceInput = result.get(0);
+                    if (voiceInput.toLowerCase().equals("yes")) {
+                        t1.speak("Will read article", TextToSpeech.QUEUE_FLUSH, null, "init");
+                    }
+                    else {
+                        t1.speak("Will not read article", TextToSpeech.QUEUE_FLUSH, null, "init");
+                        counter++;
+                    }
+                    //userInput.setText(result.get(0));
                 }
                 break;
             }
-
         }
     }
 
