@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
             for(String s : stringsToSpeak) {
                 t1.speak(s, TextToSpeech.QUEUE_FLUSH, null, "init");
                 while (t1.isSpeaking()) {
-                    System.out.println("Waiting");
+                    //do nothing
                 }
             }
             return null;
