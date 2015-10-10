@@ -2,6 +2,7 @@ package edu.vanderbilt.newsread;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
@@ -15,6 +16,8 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -42,21 +45,33 @@ public class MainActivity extends AppCompatActivity {
         });
 
         b1 = (Button)findViewById(R.id.button);
-        b1.setOnClickListener(new View.OnClickListener() {
+        startListening = (Button) findViewById(R.id.button);
+        startListening.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                t1.speak("Hello world", TextToSpeech.QUEUE_FLUSH, null, "init");
+                new SpeakInBackground().execute("The quick brown fox jumps over the lazy dog", "Hi Collin, you are the bees knees.");
+                promptSpeechInput();
             }
         });
 
         userInput = (TextView) findViewById(R.id.speechInput);
-        startListening = (Button) findViewById(R.id.speechButton);
-        startListening.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                promptSpeechInput();
+
+
+    }
+
+    private class SpeakInBackground extends AsyncTask<String, Void, Void>{
+
+
+        @Override
+        protected Void doInBackground(String... stringsToSpeak) {
+            for(String s : stringsToSpeak) {
+                t1.speak(s, TextToSpeech.QUEUE_FLUSH, null, "init");
+                while (t1.isSpeaking()) {
+                    System.out.println("Waiting");
+                }
             }
-        });
+            return null;
+        }
     }
 
     private void promptSpeechInput() {
@@ -64,8 +79,7 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                "Say something");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Say something");
         try {
             startActivityForResult(intent, 100);
         } catch (ActivityNotFoundException a) {
