@@ -27,7 +27,6 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
     TextToSpeech t1;
     Button b1;
-    TextView userInput;
     Button startListening;
     int articleNumber = 0;
 
@@ -74,14 +73,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR){
-                    t1.setLanguage(Locale.US);
+                    //don't know if line below is necessary
+                    //t1.setLanguage(Locale.US);
+                    t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
+                            TextToSpeech.QUEUE_FLUSH, null, "welcome");
+                    while (t1.isSpeaking()) {}
+                    promptSpeechInput(102);
                 }
             }
         });
-        final String[] headlines = new String[news.length];
-        for (int i = 0; i < headlines.length; ++i) {
-            headlines[i] = news[i][0];
-        }
 
         b1 = (Button)findViewById(R.id.button);
         startListening = (Button) findViewById(R.id.button);
@@ -92,20 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 readCurrentHeadline();
             }
         });
-        /*t1.speak(headlines[0], TextToSpeech.QUEUE_FLUSH, null, "init");
-        while (t1.isSpeaking()) {
 
-        }
-        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "init");
-        promptSpeechInput();
-        /*for (String headline:headlines) {
-            t1.speak(headline, TextToSpeech.QUEUE_FLUSH, null, "init");
-            while (t1.isSpeaking()) {
-
-            }
-            promptSpeechInput();
-        }*/
-        
 
     }
 
@@ -114,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Say something");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something");
         try {
             startActivityForResult(intent, code);
         } catch (ActivityNotFoundException a) {
@@ -187,6 +174,44 @@ public class MainActivity extends AppCompatActivity {
                         t1.speak("I didn't understand your response. Please say repeat or back to headlines", TextToSpeech.QUEUE_FLUSH, null, "why");
                         while(t1.isSpeaking()) {}
                         promptSpeechInput(101);
+                    }
+                }
+                break;
+            }
+            case 102: { //yes/no to tutorial
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    voiceInput = result.get(0).toLowerCase();
+                    if (voiceInput.equals("yes")) {
+                        t1.speak("News Read will read headlines to you. After each headline you will be asked if you would" +
+                                "like to read the article. After an article has been read you have the option to reread the " +
+                                "article or to go back to headlines. This ends the tutorial. Would you like to repeat the tutorial?"
+                                , TextToSpeech.QUEUE_FLUSH, null, "tutorial");
+                        while (t1.isSpeaking()) {}
+                        promptSpeechInput(103);
+                    }
+                    else {
+                        t1.speak("Proceeding to headlines", TextToSpeech.QUEUE_FLUSH, null, "begin");
+                        while (t1.isSpeaking()) {}
+                        readCurrentHeadline();
+                    }
+                }
+                break;
+            }
+            case 103: { //yes/no to repeating tutorial
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    voiceInput = result.get(0).toLowerCase();
+                    if (voiceInput.equals("yes")) {
+                        t1.speak("News Read will read headlines to you. After each headline you will be asked if you would" +
+                                "like to read the article. After an article has been read you have the option to reread the " +
+                                "article or to go back to headlines. This ends the tutorial. Proceeding to headlines."
+                                , TextToSpeech.QUEUE_FLUSH, null, "tutorial");
+                        while(t1.isSpeaking()) {}
+                        readCurrentHeadline();
+                    }
+                    else {
+                        readCurrentHeadline();
                     }
                 }
                 break;
