@@ -105,8 +105,6 @@ public class MainActivity extends AppCompatActivity {
             }
             promptSpeechInput();
         }*/
-
-        userInput = (TextView) findViewById(R.id.speechInput);
         
 
     }
