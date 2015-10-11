@@ -188,29 +188,11 @@ public class MainActivity extends AppCompatActivity {
                                 "article or to go back to headlines. This ends the tutorial. Would you like to repeat the tutorial?"
                                 , TextToSpeech.QUEUE_FLUSH, null, "tutorial");
                         while (t1.isSpeaking()) {}
-                        promptSpeechInput(103);
+                        promptSpeechInput(102);
                     }
                     else {
                         t1.speak("Proceeding to headlines", TextToSpeech.QUEUE_FLUSH, null, "begin");
                         while (t1.isSpeaking()) {}
-                        readCurrentHeadline();
-                    }
-                }
-                break;
-            }
-            case 103: { //yes/no to repeating tutorial
-                if (resultCode == RESULT_OK && null != data) {
-                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    voiceInput = result.get(0).toLowerCase();
-                    if (voiceInput.equals("yes")) {
-                        t1.speak("News Read will read headlines to you. After each headline you will be asked if you would" +
-                                "like to read the article. After an article has been read you have the option to reread the " +
-                                "article or to go back to headlines. This ends the tutorial. Proceeding to headlines."
-                                , TextToSpeech.QUEUE_FLUSH, null, "tutorial");
-                        while(t1.isSpeaking()) {}
-                        readCurrentHeadline();
-                    }
-                    else {
                         readCurrentHeadline();
                     }
                 }
