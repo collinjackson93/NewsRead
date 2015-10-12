@@ -30,9 +30,6 @@ public class MainActivity extends AppCompatActivity {
     Button startListening;
     int articleNumber = 0;
     int sentenceNumber = 0;
-    SpeechRecognizer speech = null;
-    Intent recognizerIntent;
-    int errorCount = 0;
 
     // Stores headlines and full articles. Articles are in the second dimension.
     String voiceInput;
@@ -65,71 +62,6 @@ public class MainActivity extends AppCompatActivity {
     final String[] headlines = new String[news.length];
 
 
-    class Listener implements RecognitionListener {
-
-        @Override
-        public void onReadyForSpeech(Bundle bundle) {
-
-        }
-
-        @Override
-        public void onBeginningOfSpeech() {
-
-        }
-
-        @Override
-        public void onRmsChanged(float v) {
-
-        }
-
-        @Override
-        public void onBufferReceived(byte[] bytes) {
-
-        }
-
-        @Override
-        public void onEndOfSpeech() {
-            //t1.speak("blah", TextToSpeech.QUEUE_FLUSH, null, "testing");
-            //while(t1.isSpeaking()) {}
-        }
-
-        @Override
-        public void onError(int i) {
-            System.out.println(i);
-            if (i == SpeechRecognizer.ERROR_SPEECH_TIMEOUT && errorCount == 1) {
-                t1.speak("blah", TextToSpeech.QUEUE_FLUSH, null, "testing");
-                while (t1.isSpeaking()) {
-                }
-                errorCount++;
-            }
-        }
-
-        @Override
-        public void onResults(Bundle bundle) {
-            ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            String result = data.get(0);
-            if (result.equals("yes")) {
-                t1.speak("This is a bunch of nonsense", TextToSpeech.QUEUE_FLUSH, null, "testing");
-                while(t1.isSpeaking()) {}
-
-            }
-            else {
-                t1.speak("doing nothing", TextToSpeech.QUEUE_FLUSH, null, "testing");
-                while(t1.isSpeaking()) {}
-
-            }
-        }
-
-        @Override
-        public void onPartialResults(Bundle bundle) {
-
-        }
-
-        @Override
-        public void onEvent(int i, Bundle bundle) {
-
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,12 +69,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        speech = SpeechRecognizer.createSpeechRecognizer(this);
-        recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        speech.setRecognitionListener(new Listener());
 
         t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -153,9 +79,7 @@ public class MainActivity extends AppCompatActivity {
                     t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
                             TextToSpeech.QUEUE_FLUSH, null, "welcome");
                     while (t1.isSpeaking()) {}
-                    speech.startListening(recognizerIntent);
-                    //speech.stopListening();
-                    //promptSpeechInput(102);
+                    promptSpeechInput(102);
                 }
             }
         });
@@ -181,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something");
-        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 500);
         try {
             startActivityForResult(intent, code);
         } catch (ActivityNotFoundException a) {
@@ -193,16 +116,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void readCurrentSentence() {
         String[] sentences = news[articleNumber][1].split("\\.");
-        System.out.println(sentences.length);
         if (sentenceNumber < sentences.length){
             String sentence = sentences[sentenceNumber];
             t1.speak(sentence, TextToSpeech.QUEUE_FLUSH, null, "sentence");
             while (t1.isSpeaking()) {}
-            promptSpeechInput(103);
+            sentenceNumber++;
+            readCurrentSentence();
         }
         else {
             t1.speak("Repeat or back to headlines?", TextToSpeech.QUEUE_FLUSH, null, "whatever");
             while(t1.isSpeaking()) {}
+            sentenceNumber = 0;
             promptSpeechInput(101);
         }
     }
