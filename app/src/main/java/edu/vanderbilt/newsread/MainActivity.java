@@ -79,19 +79,7 @@ public class MainActivity extends AppCompatActivity {
                 if(status != TextToSpeech.ERROR){
                     //don't know if line below is necessary
                     //t1.setLanguage(Locale.US);
-                    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-                    if (settings.getBoolean("firstRun", true))
-                    {
-                        settings.edit().putBoolean("firstRun", false).commit();
-                        t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
-                                TextToSpeech.QUEUE_FLUSH, null, "welcome");
-                        while (t1.isSpeaking()) {}
-                        promptSpeechInput(102);
-                    } else {
-                        readCurrentHeadline();
                     new OperationTask().execute();
-
-                    }
                 }
             }
         });
@@ -113,11 +101,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
-                    TextToSpeech.QUEUE_FLUSH, null, "welcome");
-            while (t1.isSpeaking()) {}
-            promptSpeechInput(102);
-
+            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+            if (settings.getBoolean("firstRun", true)) {
+                settings.edit().putBoolean("firstRun", false).commit();
+                t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
+                        TextToSpeech.QUEUE_FLUSH, null, "welcome");
+                while (t1.isSpeaking()) {
+                }
+                promptSpeechInput(102);
+            } else {
+                readCurrentHeadline();
+            }
             return null;
         }
     }
