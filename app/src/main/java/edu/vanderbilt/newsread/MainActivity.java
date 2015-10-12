@@ -10,10 +10,12 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.test.UiThreadTest;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,11 +30,11 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     TextToSpeech t1;
-    Button b1;
-    Button startListening;
+    Button backToHeadlines;
     int articleNumber = 0;
     final String PREFS_NAME = "NewsReadPrefs";
     int sentenceNumber = 0;
+    Boolean interruptedReading = false;
 
     // Stores headlines and full articles. Articles are in the second dimension.
     String voiceInput;
@@ -84,13 +86,64 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        b1 = (Button)findViewById(R.id.button);
-        startListening = (Button) findViewById(R.id.button);
+        t1.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String utteranceId) {
 
-        startListening.setOnClickListener(new View.OnClickListener() {
+            }
+
+            @Override
+            public void onDone(String utteranceId) {
+                switch (utteranceId) {
+                    case "welcome":
+                        promptSpeechInput(102);
+                        break;
+                    case "sentence":
+                        if(!interruptedReading) {
+                            sentenceNumber++;
+                            readCurrentSentence();
+                        } else {
+                            interruptedReading = false;
+                        }
+                        break;
+                    case "lastSentence":
+                        sentenceNumber = 0;
+                        promptSpeechInput(101);
+                        break;
+                    case "headline":
+                        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
+                        break;
+                    case "readArticle?":
+                        promptSpeechInput(100);
+                        break;
+                    case "noMatch":
+                        promptSpeechInput(101);
+                        break;
+                    case "tutorial":
+                        promptSpeechInput(102);
+                        break;
+                    case "begin":
+                        readCurrentHeadline();
+                        break;
+                }
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+
+            }
+        });
+
+        backToHeadlines = (Button) findViewById(R.id.backToHeadlines);
+
+        backToHeadlines.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                readCurrentHeadline();
+                backToHeadlines.setEnabled(false);
+                interruptedReading = true;
+                t1.stop();
+                sentenceNumber = 0;
+                readNextHeadline();
             }
         });
 
@@ -106,9 +159,9 @@ public class MainActivity extends AppCompatActivity {
                 settings.edit().putBoolean("firstRun", false).commit();
                 t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
                         TextToSpeech.QUEUE_FLUSH, null, "welcome");
-                while (t1.isSpeaking()) {
-                }
-                promptSpeechInput(102);
+//                while (t1.isSpeaking()) {
+//                }
+//                promptSpeechInput(102);
             } else {
                 readCurrentHeadline();
             }
@@ -136,17 +189,19 @@ public class MainActivity extends AppCompatActivity {
     private void readCurrentSentence() {
         String[] sentences = news[articleNumber][1].split("\\.");
         if (sentenceNumber < sentences.length){
+            backToHeadlines.setEnabled(true);
             String sentence = sentences[sentenceNumber];
             t1.speak(sentence, TextToSpeech.QUEUE_FLUSH, null, "sentence");
-            while (t1.isSpeaking()) {}
-            sentenceNumber++;
-            readCurrentSentence();
+//            while (t1.isSpeaking()) {}
+//            sentenceNumber++;
+//            readCurrentSentence();
         }
         else {
-            t1.speak("Repeat or back to headlines?", TextToSpeech.QUEUE_FLUSH, null, "whatever");
-            while(t1.isSpeaking()) {}
-            sentenceNumber = 0;
-            promptSpeechInput(101);
+//            backToHeadlines.setEnabled(false);
+            t1.speak("Repeat or back to headlines?", TextToSpeech.QUEUE_FLUSH, null, "lastSentence");
+//            while(t1.isSpeaking()) {}
+//            sentenceNumber = 0;
+//            promptSpeechInput(101);
         }
     }
 
@@ -160,11 +215,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void readCurrentHeadline() {
-        t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "init");
-        while (t1.isSpeaking()) {}
-        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "init");
-        while (t1.isSpeaking()) {}
-        promptSpeechInput(100);
+        backToHeadlines.setEnabled(false);
+        t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "headline");
+//        while (t1.isSpeaking()) {}
+//        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
+//        while (t1.isSpeaking()) {}
+//        promptSpeechInput(100);
     }
 
     private void readNextHeadline() {
@@ -213,9 +269,9 @@ public class MainActivity extends AppCompatActivity {
                         readNextHeadline();
                     }
                     else {
-                        t1.speak("I didn't understand your response. Please say repeat or back to headlines", TextToSpeech.QUEUE_FLUSH, null, "why");
-                        while(t1.isSpeaking()) {}
-                        promptSpeechInput(101);
+                        t1.speak("I didn't understand your response. Please say repeat or back to headlines", TextToSpeech.QUEUE_FLUSH, null, "noMatch");
+//                        while(t1.isSpeaking()) {}
+//                        promptSpeechInput(101);
                     }
                 }
                 break;
@@ -229,13 +285,13 @@ public class MainActivity extends AppCompatActivity {
                                 "like to read the article. After an article has been read you have the option to reread the " +
                                 "article or to go back to headlines. This ends the tutorial. Would you like to repeat the tutorial?"
                                 , TextToSpeech.QUEUE_FLUSH, null, "tutorial");
-                        while (t1.isSpeaking()) {}
-                        promptSpeechInput(102);
+//                        while (t1.isSpeaking()) {}
+//                        promptSpeechInput(102);
                     }
                     else {
                         t1.speak("Proceeding to headlines", TextToSpeech.QUEUE_FLUSH, null, "begin");
-                        while (t1.isSpeaking()) {}
-                        readCurrentHeadline();
+//                        while (t1.isSpeaking()) {}
+//                        readCurrentHeadline();
                     }
                 }
                 break;

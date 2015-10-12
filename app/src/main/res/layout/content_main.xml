@@ -13,10 +13,23 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Speak!"
-        android:id="@+id/button"
+        android:text="Back to Headlines"
+        android:id="@+id/backToHeadlines"
         android:layout_marginTop="58dp"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:enabled="false" />
+
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New ToggleButton"
+        android:textOff="Pause"
+        android:textOn="Resume"
+        android:enabled="false"
+        android:id="@+id/toggleButton"
+        android:layout_below="@+id/backToHeadlines"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="90dp" />
 
 </RelativeLayout>
