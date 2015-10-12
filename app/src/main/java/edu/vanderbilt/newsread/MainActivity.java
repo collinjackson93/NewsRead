@@ -2,6 +2,7 @@ package edu.vanderbilt.newsread;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     Button b1;
     Button startListening;
     int articleNumber = 0;
+    final String PREFS_NAME = "NewsReadPrefs";
 
     // Stores headlines and full articles. Articles are in the second dimension.
     String voiceInput;
@@ -75,10 +77,17 @@ public class MainActivity extends AppCompatActivity {
                 if(status != TextToSpeech.ERROR){
                     //don't know if line below is necessary
                     //t1.setLanguage(Locale.US);
-                    t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
-                            TextToSpeech.QUEUE_FLUSH, null, "welcome");
-                    while (t1.isSpeaking()) {}
-                    promptSpeechInput(102);
+                    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+                    if (settings.getBoolean("firstRun", true))
+                    {
+                        settings.edit().putBoolean("firstRun", false).commit();
+                        t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
+                                TextToSpeech.QUEUE_FLUSH, null, "welcome");
+                        while (t1.isSpeaking()) {}
+                        promptSpeechInput(102);
+                    } else {
+                        readCurrentHeadline();
+                    }
                 }
             }
         });
