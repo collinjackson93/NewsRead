@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.service.voice.AlwaysOnHotwordDetector;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -76,10 +77,12 @@ public class MainActivity extends AppCompatActivity {
                 if(status != TextToSpeech.ERROR){
                     //don't know if line below is necessary
                     //t1.setLanguage(Locale.US);
-                    t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
+                    /*t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
                             TextToSpeech.QUEUE_FLUSH, null, "welcome");
                     while (t1.isSpeaking()) {}
-                    promptSpeechInput(102);
+                    promptSpeechInput(102);*/
+                    new OperationTask().execute();
+
                 }
             }
         });
@@ -95,6 +98,19 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    private class OperationTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
+                    TextToSpeech.QUEUE_FLUSH, null, "welcome");
+            while (t1.isSpeaking()) {}
+            promptSpeechInput(102);
+
+            return null;
+        }
     }
 
 
