@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.service.voice.AlwaysOnHotwordDetector;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     Button startListening;
     int articleNumber = 0;
     final String PREFS_NAME = "NewsReadPrefs";
+    int sentenceNumber = 0;
 
     // Stores headlines and full articles. Articles are in the second dimension.
     String voiceInput;
@@ -87,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
                         promptSpeechInput(102);
                     } else {
                         readCurrentHeadline();
+                    new OperationTask().execute();
+
                     }
                 }
             }
@@ -105,6 +109,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private class OperationTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
+                    TextToSpeech.QUEUE_FLUSH, null, "welcome");
+            while (t1.isSpeaking()) {}
+            promptSpeechInput(102);
+
+            return null;
+        }
+    }
+
+
+
     private void promptSpeechInput(int code) {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -120,12 +139,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void readCurrentSentence() {
+        String[] sentences = news[articleNumber][1].split("\\.");
+        if (sentenceNumber < sentences.length){
+            String sentence = sentences[sentenceNumber];
+            t1.speak(sentence, TextToSpeech.QUEUE_FLUSH, null, "sentence");
+            while (t1.isSpeaking()) {}
+            sentenceNumber++;
+            readCurrentSentence();
+        }
+        else {
+            t1.speak("Repeat or back to headlines?", TextToSpeech.QUEUE_FLUSH, null, "whatever");
+            while(t1.isSpeaking()) {}
+            sentenceNumber = 0;
+            promptSpeechInput(101);
+        }
+    }
+
     private void readCurrentArticle() {
-        t1.speak(news[articleNumber][1], TextToSpeech.QUEUE_FLUSH, null, "init");
+        /*t1.speak(news[articleNumber][1], TextToSpeech.QUEUE_FLUSH, null, "init");
         while(t1.isSpeaking()) {}
         t1.speak("Repeat or back to headlines?", TextToSpeech.QUEUE_FLUSH, null, "whatever");
         while(t1.isSpeaking()) {}
         promptSpeechInput(101);
+        */
     }
 
     private void readCurrentHeadline() {
@@ -160,7 +197,8 @@ public class MainActivity extends AppCompatActivity {
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput = result.get(0);
                     if (voiceInput.toLowerCase().equals("yes")) {
-                        readCurrentArticle();
+                        //readCurrentArticle();
+                        readCurrentSentence();
                     } else {
                         readNextHeadline();
                     }
@@ -174,7 +212,8 @@ public class MainActivity extends AppCompatActivity {
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput = result.get(0).toLowerCase();
                     if (voiceInput.equals("repeat")) {
-                        readCurrentArticle();
+                        //readCurrentArticle();
+                        readCurrentSentence();
                     }
                     else if(voiceInput.equals("back to headlines")) {
                         readNextHeadline();
@@ -204,6 +243,20 @@ public class MainActivity extends AppCompatActivity {
                         while (t1.isSpeaking()) {}
                         readCurrentHeadline();
                     }
+                }
+                break;
+            }
+            case 103: {
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    voiceInput = result.get(0).toLowerCase();
+                    if (voiceInput.equals("pause")) {
+
+                    } else {
+                        sentenceNumber++;
+                        readCurrentSentence();
+                    }
+
                 }
                 break;
             }
