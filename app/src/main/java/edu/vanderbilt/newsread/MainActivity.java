@@ -283,7 +283,10 @@ public class MainActivity extends AppCompatActivity {
                     if (voiceInput.equals("yes")) {
                         t1.speak("News Read will read headlines to you. After each headline you will be asked if you would" +
                                 "like to read the article. After an article has been read you have the option to reread the " +
-                                "article or to go back to headlines. This ends the tutorial. Would you like to repeat the tutorial?"
+                                "article or to go back to headlines. While an article is being read saying back to headlines" +
+                                "will begin reading the remaining headlines. While an article is being read, saying pause will" +
+                                "pause the narration. Then saying resume will continue narration, and back to headlines will read the" +
+                                "remaining headlines. This ends the tutorial. Would you like to repeat the tutorial?"
                                 , TextToSpeech.QUEUE_FLUSH, null, "tutorial");
 //                        while (t1.isSpeaking()) {}
 //                        promptSpeechInput(102);
