@@ -20,8 +20,10 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import org.w3c.dom.Text;
 
@@ -31,6 +33,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
     TextToSpeech t1;
     Button backToHeadlines;
+    ToggleButton pauseReading;
     int articleNumber = 0;
     final String PREFS_NAME = "NewsReadPrefs";
     int sentenceNumber = 0;
@@ -140,10 +143,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 backToHeadlines.setEnabled(false);
+                pauseReading.toggle();
+                pauseReading.setEnabled(false);
                 interruptedReading = true;
                 t1.stop();
                 sentenceNumber = 0;
                 readNextHeadline();
+            }
+        });
+
+        pauseReading = (ToggleButton) findViewById(R.id.pauseReading);
+
+        pauseReading.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) { // pause reading
+                    interruptedReading = true;
+                    t1.stop();
+                } else { // resume
+                    readCurrentSentence();
+                }
             }
         });
 
@@ -190,6 +209,7 @@ public class MainActivity extends AppCompatActivity {
         String[] sentences = news[articleNumber][1].split("\\.");
         if (sentenceNumber < sentences.length){
             backToHeadlines.setEnabled(true);
+            pauseReading.setEnabled(true);
             String sentence = sentences[sentenceNumber];
             t1.speak(sentence, TextToSpeech.QUEUE_FLUSH, null, "sentence");
 //            while (t1.isSpeaking()) {}
@@ -216,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void readCurrentHeadline() {
         backToHeadlines.setEnabled(false);
+        pauseReading.setEnabled(false);
         t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "headline");
 //        while (t1.isSpeaking()) {}
 //        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
