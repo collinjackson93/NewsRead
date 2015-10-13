@@ -43,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
     String voiceInput;
     String readThisArticle = "Would you like to read this article?";
     String[][] news = new String [][] {
+            {"Makers accelerate a third industrial revolution",
+                "Boom! might be the sound of an explosion of successful businesses created by an entirely new generation of inventors with only a few hundred dollars in their pockets who build prototypes at professional makerspaces and raise funds through crowdsourcing."},
+            {"Tiny flying robots form teams, cooperate",
+                "Vijay Kumar and his students at the University of Pennsylvania build small, agile flying robots that swarm, sense each other, and form ad hoc teams that could be used for search and rescue in large-scale disasters."},
             {"Surfer loses left leg after shark attack in Hawaii",
                 "A 25-year-old Oahu man lost his left leg to a shark attack Friday while surfing off Oahu's North Shore, according to local media reports." +
                     "Colin Cook was straddling his board with both legs dangling in the water when the 10- to 12-foot shark latched onto his lower leg, media reports said. He punched the animal until it let go, screamed for help and was assisted to shore by another surfer and a kayaker, his family told reporters." +
