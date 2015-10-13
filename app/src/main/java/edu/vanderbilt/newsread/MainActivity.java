@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     final String PREFS_NAME = "NewsReadPrefs";
     int sentenceNumber = 0;
     Boolean interruptedReading = false;
+    SharedPreferences settings;
 
     // Stores headlines and full articles. Articles are in the second dimension.
     String voiceInput;
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        settings = getSharedPreferences(PREFS_NAME, 0);
 
         t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -177,9 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-            if (settings.getBoolean("firstRun", true)) {
-                settings.edit().putBoolean("firstRun", false).commit();
+            if (!settings.getBoolean("skipTutorial", false)) {
                 t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
                         TextToSpeech.QUEUE_FLUSH, null, "welcome");
 //                while (t1.isSpeaking()) {
@@ -317,6 +317,7 @@ public class MainActivity extends AppCompatActivity {
 //                        promptSpeechInput(102);
                     }
                     else {
+                        settings.edit().putBoolean("skipTutorial", true).apply();
                         t1.speak("Proceeding to headlines", TextToSpeech.QUEUE_FLUSH, null, "begin");
 //                        while (t1.isSpeaking()) {}
 //                        readCurrentHeadline();
@@ -366,6 +367,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        t1.stop();
+        t1.shutdown();
     }
 }
