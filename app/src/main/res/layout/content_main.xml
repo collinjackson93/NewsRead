@@ -27,7 +27,7 @@
         android:textOff="Pause"
         android:textOn="Resume"
         android:enabled="false"
-        android:id="@+id/toggleButton"
+        android:id="@+id/pauseReading"
         android:layout_below="@+id/backToHeadlines"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="90dp" />
