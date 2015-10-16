@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Stores headlines and full articles. Articles are in the second dimension.
     String voiceInput;
-    String readThisArticle = "Would you like to read this article?";
     String[][] news = new String [][] {
             {"Makers accelerate a third industrial revolution",
                 "Boom! might be the sound of an explosion of successful businesses created by an entirely new generation of inventors with only a few hundred dollars in their pockets who build prototypes at professional makerspaces and raise funds through crowdsourcing."},
@@ -88,12 +87,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR){
-                    //don't know if line below is necessary
-                    //t1.setLanguage(Locale.US);
                     new OperationTask().execute();
                 }
             }
         });
+        t1.setSpeechRate((float) 0.9);
 
         t1.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
@@ -120,10 +118,10 @@ public class MainActivity extends AppCompatActivity {
                         promptSpeechInput(101);
                         break;
                     case "headline":
-                        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
+                        t1.speak("Would you like to read this article or repeat its headline?", TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
                         break;
                     case "readArticle?":
-                        promptSpeechInput(100);
+                        promptSpeechInput(100, news[articleNumber][0]);
                         break;
                     case "noMatch":
                         promptSpeechInput(101);
@@ -133,6 +131,18 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case "begin":
                         readCurrentHeadline();
+                        break;
+                    case "end":
+                        promptSpeechInput(103);
+                        break;
+                    case "restartUnclear":
+                        promptSpeechInput(103);
+                        break;
+                    case "tutorialUnclear":
+                        promptSpeechInput(102);
+                        break;
+                    case "headlineUnclear":
+                        promptSpeechInput(100, news[articleNumber][0]);
                         break;
                 }
             }
@@ -163,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
         pauseReading.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) { // pause reading
+                if (isChecked) { // pause reading
                     interruptedReading = true;
                     t1.stop();
                 } else { // resume
@@ -182,9 +192,6 @@ public class MainActivity extends AppCompatActivity {
             if (!settings.getBoolean("skipTutorial", false)) {
                 t1.speak("Welcome to News Read. Would you like to hear the tutorial?",
                         TextToSpeech.QUEUE_FLUSH, null, "welcome");
-//                while (t1.isSpeaking()) {
-//                }
-//                promptSpeechInput(102);
             } else {
                 readCurrentHeadline();
             }
@@ -192,14 +199,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void promptSpeechInput(int code) {
+        promptSpeechInput(code, "Say something");
+    }
+
+    private void promptSpeechInput(int code, String visualPrompt) {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, visualPrompt);
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
         try {
             startActivityForResult(intent, code);
         } catch (ActivityNotFoundException a) {
@@ -216,36 +226,16 @@ public class MainActivity extends AppCompatActivity {
             pauseReading.setEnabled(true);
             String sentence = sentences[sentenceNumber];
             t1.speak(sentence, TextToSpeech.QUEUE_FLUSH, null, "sentence");
-//            while (t1.isSpeaking()) {}
-//            sentenceNumber++;
-//            readCurrentSentence();
         }
         else {
-//            backToHeadlines.setEnabled(false);
             t1.speak("Repeat or back to headlines?", TextToSpeech.QUEUE_FLUSH, null, "lastSentence");
-//            while(t1.isSpeaking()) {}
-//            sentenceNumber = 0;
-//            promptSpeechInput(101);
         }
-    }
-
-    private void readCurrentArticle() {
-        /*t1.speak(news[articleNumber][1], TextToSpeech.QUEUE_FLUSH, null, "init");
-        while(t1.isSpeaking()) {}
-        t1.speak("Repeat or back to headlines?", TextToSpeech.QUEUE_FLUSH, null, "whatever");
-        while(t1.isSpeaking()) {}
-        promptSpeechInput(101);
-        */
     }
 
     private void readCurrentHeadline() {
         backToHeadlines.setEnabled(false);
         pauseReading.setEnabled(false);
         t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "headline");
-//        while (t1.isSpeaking()) {}
-//        t1.speak(readThisArticle, TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
-//        while (t1.isSpeaking()) {}
-//        promptSpeechInput(100);
     }
 
     private void readNextHeadline() {
@@ -253,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
         if(articleNumber < news.length) {
             readCurrentHeadline();
         } else {
-            t1.speak("End of headlines", TextToSpeech.QUEUE_FLUSH, null, "end");
+            t1.speak("End of headlines, would you like to hear the headlines again?", TextToSpeech.QUEUE_FLUSH, null, "end");
         }
     }
 
@@ -270,12 +260,17 @@ public class MainActivity extends AppCompatActivity {
 
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    voiceInput = result.get(0);
-                    if (voiceInput.toLowerCase().equals("yes")) {
-                        //readCurrentArticle();
+                    voiceInput = result.get(0).toLowerCase();
+                    if (voiceInput.equals("yes")) {
                         readCurrentSentence();
-                    } else {
+                    } else if(result.contains("no")){
                         readNextHeadline();
+                    }
+                    else if(voiceInput.equals("repeat")) {
+                        readCurrentHeadline();
+                    }
+                    else {
+                        t1.speak("I didn't understand your response. Please say yes, no, or repeat.", TextToSpeech.QUEUE_FLUSH, null, "headlineUnclear");
                     }
                 }
                 break;
@@ -287,7 +282,6 @@ public class MainActivity extends AppCompatActivity {
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput = result.get(0).toLowerCase();
                     if (voiceInput.equals("repeat")) {
-                        //readCurrentArticle();
                         readCurrentSentence();
                     }
                     else if(voiceInput.equals("back to headlines")) {
@@ -295,8 +289,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else {
                         t1.speak("I didn't understand your response. Please say repeat or back to headlines", TextToSpeech.QUEUE_FLUSH, null, "noMatch");
-//                        while(t1.isSpeaking()) {}
-//                        promptSpeechInput(101);
                     }
                 }
                 break;
@@ -313,14 +305,12 @@ public class MainActivity extends AppCompatActivity {
                                 "pause the narration. Then saying resume will continue narration, and back to headlines will read the" +
                                 "remaining headlines. This ends the tutorial. Would you like to repeat the tutorial?"
                                 , TextToSpeech.QUEUE_FLUSH, null, "tutorial");
-//                        while (t1.isSpeaking()) {}
-//                        promptSpeechInput(102);
-                    }
-                    else {
+                    } else if(result.contains("no")) {
                         settings.edit().putBoolean("skipTutorial", true).apply();
                         t1.speak("Proceeding to headlines", TextToSpeech.QUEUE_FLUSH, null, "begin");
-//                        while (t1.isSpeaking()) {}
-//                        readCurrentHeadline();
+                    }
+                    else {
+                        t1.speak("I didn't understand your response. Please say yes or no.", TextToSpeech.QUEUE_FLUSH, null, "tutorialUnclear");
                     }
                 }
                 break;
@@ -329,13 +319,15 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK && null != data) {
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput = result.get(0).toLowerCase();
-                    if (voiceInput.equals("pause")) {
-
+                    if(voiceInput.equals("yes")) {
+                        articleNumber = 0;
+                        readCurrentHeadline();
+                    } else if(result.contains("no")) {
+                        // Should we kill the application here?
+                        return;
                     } else {
-                        sentenceNumber++;
-                        readCurrentSentence();
+                        t1.speak("I didn't understand your response. Please say yes or no.", TextToSpeech.QUEUE_FLUSH, null, "restartUnclear");
                     }
-
                 }
                 break;
             }
