@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.service.voice.AlwaysOnHotwordDetector;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.speech.tts.Voice;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -27,8 +29,10 @@ import android.widget.ToggleButton;
 
 import org.w3c.dom.Text;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     TextToSpeech t1;
@@ -81,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        // set preferences to default the first time the app is run
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         settings = getSharedPreferences(PREFS_NAME, 0);
 
         t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -91,7 +97,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        t1.setSpeechRate((float) 0.9);
+        if(settings.getBoolean("setupB", false)){
+            t1.setSpeechRate((float) 0.9);
+        }
 
         t1.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
@@ -186,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class OperationTask extends AsyncTask<Void, Void, Void> {
-
         @Override
         protected Void doInBackground(Void... voids) {
             if (!settings.getBoolean("skipTutorial", false)) {
@@ -235,7 +242,11 @@ public class MainActivity extends AppCompatActivity {
     private void readCurrentHeadline() {
         backToHeadlines.setEnabled(false);
         pauseReading.setEnabled(false);
-        t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "headline");
+        if(settings.getBoolean("setupB", false)) {
+            t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "headline");
+        } else {
+            t1.speak("Speak now", TextToSpeech.QUEUE_FLUSH, null, "headline");
+        }
     }
 
     private void readNextHeadline() {
