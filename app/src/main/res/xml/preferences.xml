@@ -4,4 +4,8 @@
         android:key="setupB"
         android:title="Option Set B"
         android:defaultValue="false" />
+    <CheckBoxPreference
+        android:key="skipTutorial"
+        android:title="Skip the Tutorial"
+        android:defaultValue="false" />
 </PreferenceScreen>

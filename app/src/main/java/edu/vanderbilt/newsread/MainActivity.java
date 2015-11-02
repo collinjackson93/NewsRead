@@ -1,10 +1,12 @@
 package edu.vanderbilt.newsread;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.service.voice.AlwaysOnHotwordDetector;
 import android.speech.RecognitionListener;
@@ -39,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
     Button backToHeadlines;
     ToggleButton pauseReading;
     int articleNumber = 0;
-    final String PREFS_NAME = "NewsReadPrefs";
     int sentenceNumber = 0;
     Boolean interruptedReading = false;
     SharedPreferences settings;
@@ -87,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         // set preferences to default the first time the app is run
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        settings = getSharedPreferences(PREFS_NAME, 0);
+        settings = PreferenceManager.getDefaultSharedPreferences(this);
 
         t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -129,7 +130,11 @@ public class MainActivity extends AppCompatActivity {
                         t1.speak("Would you like to read this article or repeat its headline?", TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
                         break;
                     case "readArticle?":
-                        promptSpeechInput(100, news[articleNumber][0]);
+                        if(settings.getBoolean("setupB", false)) {
+                            promptSpeechInput(100, news[articleNumber][0]);
+                        } else {
+                            promptSpeechInput(100, "Speak now");
+                        }
                         break;
                     case "noMatch":
                         promptSpeechInput(101);
@@ -242,11 +247,7 @@ public class MainActivity extends AppCompatActivity {
     private void readCurrentHeadline() {
         backToHeadlines.setEnabled(false);
         pauseReading.setEnabled(false);
-        if(settings.getBoolean("setupB", false)) {
-            t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "headline");
-        } else {
-            t1.speak("Speak now", TextToSpeech.QUEUE_FLUSH, null, "headline");
-        }
+        t1.speak(news[articleNumber][0], TextToSpeech.QUEUE_FLUSH, null, "headline");
     }
 
     private void readNextHeadline() {
@@ -361,7 +362,8 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
         }
 
         return super.onOptionsItemSelected(item);
