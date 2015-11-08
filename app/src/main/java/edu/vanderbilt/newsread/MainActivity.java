@@ -127,7 +127,11 @@ public class MainActivity extends AppCompatActivity {
                         promptSpeechInput(101);
                         break;
                     case "headline":
-                        t1.speak("Would you like to read this article or repeat its headline?", TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
+                        if(settings.getBoolean("setupB", false)) {
+                            t1.speak("Would you like to read this article or repeat its headline?", TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
+                        } else {
+                            t1.speak("", TextToSpeech.QUEUE_FLUSH, null, "readArticle?");
+                        }
                         break;
                     case "readArticle?":
                         if(settings.getBoolean("setupB", false)) {
